@@ -90,10 +90,8 @@ millet = ["prompts/*.md"]
 rtl = ["arabic-reshaper>=3.0", "python-bidi>=0.4"]
 mlx = ["mlx-whisper>=0.4.3"]
 tee = ["tinfoil>=0.12"]
-# Parakeet ASR backend (NVIDIA Parakeet TDT via ONNX Runtime).  Pure-Python,
-# pulls onnx-asr + onnxruntime + huggingface-hub (NO torch / transformers).
-# English-only benchmark target; opt-in via --asr-backend parakeet.
-# For CUDA, install onnxruntime-gpu separately on the GPU host.
+gui = ["pygobject>=3.42", "pycairo>=1.20"]
+openai = ["openai>=1.0"]
 parakeet = ["onnx-asr[hub]>=0.11"]
 dev = ["ruff", "pytest", "pytest-timeout"]
 

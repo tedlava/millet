@@ -37,3 +37,5 @@ meetscribe_hackntell_*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+.history/
