@@ -87,6 +87,7 @@ def _apply_json_mode(
     ollama_singlepass: bool,
     update_profiles: bool,
     team_profiles_path: Path | None,
+    include_transcript: bool,
 ) -> None:
     """Non-interactive label application from a JSON map.
 
@@ -163,6 +164,7 @@ def _apply_json_mode(
             summary_model=summary_model,
             summary_language=summary_language,
             ollama_singlepass=ollama_singlepass,
+            include_transcript=include_transcript,
             progress_callback=lambda msg: click.echo(f"  {msg}"),
         )
     except Exception as exc:
@@ -252,6 +254,12 @@ def _apply_json_mode(
     help="Model for summary (default: per-backend, or MILLET_SUMMARY_MODEL env var)",
 )
 @click.option(
+    "--pdf-transcript/--no-pdf-transcript",
+    default=True,
+    help="Include the full diarized transcript in the PDF (default: on). "
+         "Use --no-pdf-transcript for a summary-only PDF.",
+)
+@click.option(
     "--ollama-singlepass",
     is_flag=True,
     default=False,
@@ -292,7 +300,7 @@ def _apply_json_mode(
          "DB from the applied (human-confirmed) labels. Non-fatal on "
          "failure. Uses --team's DB when given.",
 )
-def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backend, summary_model, ollama_singlepass, team, apply_json, summary_language, update_profiles):
+def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backend, summary_model, ollama_singlepass, team, apply_json, summary_language, update_profiles, pdf_transcript):
     """Assign real names to speakers in a transcribed session.
 
     \b
@@ -345,6 +353,7 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
             ollama_singlepass=ollama_singlepass,
             update_profiles=update_profiles,
             team_profiles_path=team_profiles_path,
+            include_transcript=pdf_transcript,
         )
         return
     files = _find_session_files(session_path)
@@ -634,6 +643,7 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
         summary_backend=summary_backend,
         summary_model=summary_model,
         ollama_singlepass=ollama_singlepass,
+        include_transcript=pdf_transcript,
         progress_callback=lambda msg: click.echo(f"  {msg}"),
     )
 

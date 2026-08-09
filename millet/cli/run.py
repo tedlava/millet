@@ -65,6 +65,12 @@ from ._helpers import (
     help="Generate AI meeting summary (default: on)",
 )
 @click.option(
+    "--pdf-transcript/--no-pdf-transcript",
+    default=True,
+    help="Include the full diarized transcript in the PDF (default: on). "
+         "Use --no-pdf-transcript for a summary-only PDF.",
+)
+@click.option(
     "--summary-preset",
     type=click.Choice(["high-quality", "confidential", "alternative"], case_sensitive=False),
     default=None,
@@ -117,6 +123,7 @@ def run(
     max_speakers,
     virtual_sink,
     summarize,
+    pdf_transcript,
     summary_preset,
     summary_backend,
     summary_model,
@@ -244,7 +251,7 @@ def run(
                 # artifacts still exist, then fail non-zero below.
                 preset_summary_error = exc
 
-        _generate_pdf(transcript, output.parent, output.stem, summary_result, files)
+        _generate_pdf(transcript, output.parent, output.stem, summary_result, files, include_transcript=pdf_transcript)
 
         click.echo()
         click.echo("Done!")

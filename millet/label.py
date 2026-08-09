@@ -554,6 +554,7 @@ def apply_labels(
     summary_model: str | None = None,
     ollama_singlepass: bool = False,
     summary_language: str | None = None,
+    include_transcript: bool = True,
     progress_callback: Any | None = None,
 ) -> dict[str, Path]:
     """Apply user-assigned speaker names to a session's outputs.
@@ -582,6 +583,7 @@ def apply_labels(
             file, leaving the primary auto-detected ``<basename>.summary.md``
             intact.  When None, the transcript's own language is used and the
             primary summary file is (re)written.
+        include_transcript: If False, omit the full diarized transcript section.
         progress_callback: Optional callable(str) for status messages.
 
     Returns:
@@ -775,6 +777,7 @@ def apply_labels(
             transcript, pdf_path,
             summary=summary_result,
             language=transcript.language,
+            include_transcript=include_transcript,
         )
         result_files["pdf"] = pdf_path
     except Exception as exc:

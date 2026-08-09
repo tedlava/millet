@@ -29,6 +29,7 @@ def _ingest_one_session(
     summary_model: str | None,
     ollama_singlepass: bool,
     re_pdf: bool,
+    include_transcript: bool,
     force: bool,
     dry_run: bool,
 ) -> tuple[bool, str]:
@@ -99,6 +100,7 @@ def _ingest_one_session(
                 transcript,
                 pdf_path,
                 summary=result,
+                include_transcript=include_transcript,
                 language=getattr(transcript, "language", "en"),
             )
         except Exception as exc:
@@ -160,6 +162,12 @@ def _ingest_one_session(
     help="Skip regenerating the PDF after writing frontmatter.",
 )
 @click.option(
+    "--pdf-transcript/--no-pdf-transcript",
+    default=True,
+    help="Include the full diarized transcript in the PDF (default: on). "
+         "Use --no-pdf-transcript for a summary-only PDF.",
+)
+@click.option(
     "--force",
     is_flag=True,
     default=False,
@@ -179,6 +187,7 @@ def ingest(
     summary_model,
     ollama_singlepass,
     no_pdf,
+    pdf_transcript,
     force,
     dry_run,
 ):
@@ -241,6 +250,7 @@ def ingest(
             summary_model=summary_model,
             ollama_singlepass=ollama_singlepass,
             re_pdf=not no_pdf,
+            include_transcript=pdf_transcript,
             force=force,
             dry_run=dry_run,
         )

@@ -529,6 +529,7 @@ def generate_pdf(
     title: str = "Meeting Transcript",
     language: str = "en",
     confidential: bool = False,
+    include_transcript: bool = True,
 ) -> Path:
     """Generate a PDF transcript document.
 
@@ -542,6 +543,8 @@ def generate_pdf(
             RTL selection.
         confidential: If True, print "CONFIDENTIAL" in red on every
             page header and footer (used for TEE-backed summaries).
+        include_transcript: If False, omit the full diarized transcript
+            section and produce a summary-only PDF.
 
     Returns:
         Path to the generated PDF file.
@@ -603,34 +606,35 @@ def generate_pdf(
         story.append(Spacer(1, 16))
 
     # ── Transcript section ──
-    transcript_title = sections["transcript"]
-    if rtl:
-        transcript_title = _reshape_rtl(transcript_title)
-    story.append(Paragraph(
-        _escape_xml(transcript_title), styles["section_heading"],
-    ))
-    story.append(Spacer(1, 4))
-
-    turns = _group_speaker_turns(transcript)
-
-    for turn in turns:
-        speaker = turn["speaker"]
-        start_ts = _fmt_time(turn["start"])
-
-        # Speaker + timestamp header
-        header = (
-            f'<font color="{_COLOR_SPEAKER}">'
-            f'<b>{_escape_xml(speaker)}</b></font>'
-            f'  <font color="{_COLOR_TIMESTAMP}" size="8">{start_ts}</font>'
-        )
-        story.append(Paragraph(header, styles["speaker"]))
-
-        # Transcript text — reshape RAW text before escaping so bidi
-        # reordering can't scramble multi-char XML entities (&amp; etc.).
-        raw_text = turn["text"]
+    if include_transcript:
+        transcript_title = sections["transcript"]
         if rtl:
-            raw_text = _reshape_rtl(raw_text)
-        story.append(Paragraph(_escape_xml(raw_text), styles["transcript_text"]))
+            transcript_title = _reshape_rtl(transcript_title)
+        story.append(Paragraph(
+            _escape_xml(transcript_title), styles["section_heading"],
+        ))
+        story.append(Spacer(1, 4))
+
+        turns = _group_speaker_turns(transcript)
+
+        for turn in turns:
+            speaker = turn["speaker"]
+            start_ts = _fmt_time(turn["start"])
+
+            # Speaker + timestamp header
+            header = (
+                f'<font color="{_COLOR_SPEAKER}">'
+                f'<b>{_escape_xml(speaker)}</b></font>'
+                f'  <font color="{_COLOR_TIMESTAMP}" size="8">{start_ts}</font>'
+            )
+            story.append(Paragraph(header, styles["speaker"]))
+
+            # Transcript text — reshape RAW text before escaping so bidi
+            # reordering can't scramble multi-char XML entities (&amp; etc.).
+            raw_text = turn["text"]
+            if rtl:
+                raw_text = _reshape_rtl(raw_text)
+            story.append(Paragraph(_escape_xml(raw_text), styles["transcript_text"]))
 
     # ── Build PDF ──
     # Auto-detect confidential mode from summary backend

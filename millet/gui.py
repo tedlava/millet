@@ -58,6 +58,7 @@ from pathlib import Path
 import gi
 
 gi.require_version("Gtk", "3.0")
+gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk, GLib, Gtk, Pango
 
 from millet.capture import DRAIN_SECONDS
@@ -501,7 +502,7 @@ class MeetRecorderWindow(Gtk.Window):
             return combo
 
         # ASR backend ------------------------------------------------------
-        backend_values = ["auto", "whisperx", "mlx"]
+        backend_values = ["auto", "whisperx", "mlx", "parakeet"]
         current_backend = self._transcribe_kwargs.get("asr_backend", "auto")
         self._asr_backend_combo = _combo(backend_values, current_backend)
         self._asr_backend_combo.connect(

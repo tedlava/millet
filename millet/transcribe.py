@@ -2936,6 +2936,7 @@ def post_process(
     summary_model: str | None = None,
     summary_preset: str | None = None,
     ollama_singlepass: bool = False,
+    include_transcript: bool = True,
     progress_callback=None,
 ) -> dict:
     """Run summarization and PDF generation after transcription.
@@ -2951,6 +2952,7 @@ def post_process(
         summarize:        Whether to attempt AI summarization.
         summary_backend:  Backend override ("ollama" or "openrouter"); None uses default.
         summary_model:    Model name override; None uses the per-backend default.
+        include_transcript: If False, omit the full diarized transcript section.
         progress_callback: Optional callable(str) for status/error messages.
 
     Returns:
@@ -3016,6 +3018,7 @@ def post_process(
             pdf_path,
             summary=summary_result,
             language=getattr(transcript, "language", "en"),
+            include_transcript=include_transcript,
         )
         result["pdf"] = pdf_path
     except Exception as exc:

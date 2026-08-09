@@ -104,10 +104,9 @@ def _generate_summary(
         return None
 
 
-def _generate_pdf(transcript, out_dir, basename, summary_result, files):
+def _generate_pdf(transcript, out_dir, basename, summary_result, files, include_transcript=True):
     """Generate a PDF transcript with optional summary."""
     from millet.pdf import generate_pdf
-
     pdf_path = out_dir / f"{basename}.pdf"
     try:
         generate_pdf(
@@ -115,6 +114,7 @@ def _generate_pdf(transcript, out_dir, basename, summary_result, files):
             pdf_path,
             summary=summary_result,
             language=getattr(transcript, "language", "en"),
+            include_transcript=include_transcript,
         )
         files["pdf"] = pdf_path
     except Exception as exc:
