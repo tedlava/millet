@@ -594,12 +594,26 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
                     except Exception as exc:
                         click.echo(f"  (Audio playback failed: {exc})")
 
-                # Prompt for name
-                new_name = click.prompt(
-                    f"  Enter name for {sp.id} (Enter to keep)",
-                    default="",
-                    show_default=False,
-                ).strip()
+                # Prompt for name (with optional replay)
+                while True:
+                    new_name = click.prompt(
+                        f"  Enter name for {sp.id} (Enter to keep, 'r' to replay)",
+                        default="",
+                        show_default=False,
+                    ).strip()
+                    if new_name.lower() == "r":
+                        if can_play:
+                            try:
+                                click.echo("  Playing audio clip... ", nl=False)
+                                proc = play_clip(clip_path)
+                                proc.wait()
+                                click.echo("done")
+                            except Exception as exc:
+                                click.echo(f"  (Audio playback failed: {exc})")
+                        else:
+                            click.echo("  (No audio available to replay)")
+                        continue
+                    break
 
                 if new_name and new_name != sp.id:
                     label_map[sp.id] = new_name
