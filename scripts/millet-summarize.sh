@@ -37,5 +37,5 @@ millet-summarize() {
         return 1
     fi
     echo "Using model: $model"
-    millet label --summary-backend openai --summary-model --no-pdf-transcript "$model" "$@"
+    millet label --summary-backend openai --summary-model "$model" --no-pdf-transcript "$@"
 }

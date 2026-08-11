@@ -2,9 +2,23 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
-
 import click
+
+
+_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:REMOTE|SPEAKER)_\d+$")
+
+
+def _remaining_placeholders(speakers, label_map: dict[str, str]) -> list[str]:
+    """Return the sorted set of speaker ids/names still matching the
+    placeholder pattern (REMOTE_N, SPEAKER_N) after label_map is applied."""
+    remaining = []
+    for sp in speakers:
+        final_name = label_map.get(sp.id, sp.id)
+        if _PLACEHOLDER_SPEAKER_RE.match(final_name):
+            remaining.append(final_name)
+    return sorted(remaining)
 
 
 def weak_match_reason(match) -> str | None:
@@ -634,6 +648,23 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
         click.echo("No labels changed. Nothing to do.")
         return
 
+    regenerate_summary = not no_summary
+    if regenerate_summary and interactive:
+        placeholders = _remaining_placeholders(speakers, label_map)
+        if placeholders:
+            click.echo(
+                f"Unlabeled speaker(s) still present: {', '.join(placeholders)}"
+            )
+            if not click.confirm(
+                "Do you want to summarize the meeting with unlabeled speakers?",
+                default=False,
+            ):
+                click.echo(
+                    "Skipping summarization. Run 'millet label' again once "
+                    "all speakers are named."
+                )
+                regenerate_summary = False
+
     click.echo("Applying labels:")
     for old, new in sorted(label_map.items()):
         click.echo(f"  {old} -> {new}")
@@ -646,9 +677,8 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
     # match nothing.
     pre_relabel_segments = list(transcript.segments) if transcript is not None else None
 
-    # Apply labels and regenerate outputs
-    regenerate_summary = not no_summary
-
+    # regenerate_summary was resolved above (possibly downgraded to False
+    # by the unlabeled-speaker prompt).
     result_files = apply_labels(
         session_path,
         label_map,

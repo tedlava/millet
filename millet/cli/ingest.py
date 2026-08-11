@@ -1,9 +1,26 @@
 """millet ingest command."""
 from __future__ import annotations
-
+import re
 from pathlib import Path
-
 import click
+
+
+_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:YOU|REMOTE_\d+|SPEAKER_\d+)$")
+
+
+def _unlabeled_speakers(transcript_text: str) -> list[str]:
+    """Return the sorted set of placeholder speaker labels (REMOTE_N,
+    SPEAKER_N) still present in a transcript — i.e. speakers that
+    haven't been renamed via `millet label`."""
+    seen: set[str] = set()
+    for line in transcript_text.splitlines():
+        m = re.match(r"^\[[^\]]+\]\s+([^:]+):", line)
+        if not m:
+            continue
+        speaker = m.group(1).strip()
+        if _PLACEHOLDER_SPEAKER_RE.match(speaker):
+            seen.add(speaker)
+    return sorted(seen)
 
 
 def _has_frontmatter(summary_meta_path: Path) -> bool:
@@ -32,6 +49,7 @@ def _ingest_one_session(
     include_transcript: bool,
     force: bool,
     dry_run: bool,
+    allow_unlabeled: bool = False,
 ) -> tuple[bool, str]:
     """Re-extract structured frontmatter for a single session.
 
@@ -60,6 +78,15 @@ def _ingest_one_session(
         return True, f"{session_dir.name}: would re-extract"
 
     transcript = _load_transcript(files["json"])
+
+    if not allow_unlabeled:
+        placeholders = _unlabeled_speakers(transcript.to_text())
+        if placeholders:
+            return True, (
+                f"{session_dir.name}: skipping — unlabeled speaker(s) "
+                f"present ({', '.join(placeholders)}); run `millet label` "
+                f"first or pass --allow-unlabeled to force"
+            )
 
     cfg_kwargs: dict = {}
     if summary_preset:
@@ -174,6 +201,14 @@ def _ingest_one_session(
     help="Re-extract even when the session already has structured frontmatter.",
 )
 @click.option(
+    "--allow-unlabeled",
+    is_flag=True,
+    default=False,
+    help="Summarize even if placeholder speaker labels (REMOTE_N, "
+    "SPEAKER_N) are still present. Off by default — run `millet label` "
+    "first to assign real names.",
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     default=False,
@@ -189,6 +224,7 @@ def ingest(
     no_pdf,
     pdf_transcript,
     force,
+    allow_unlabeled,
     dry_run,
 ):
     """Re-extract structured YAML frontmatter for existing sessions.
@@ -243,7 +279,7 @@ def ingest(
     n_fail = 0
     for sd in targets:
         click.echo(f"  • {sd}")
-        ok, msg = _ingest_one_session(
+ok, msg = _ingest_one_session(
             sd,
             summary_preset=summary_preset,
             summary_backend=summary_backend,
@@ -253,6 +289,7 @@ def ingest(
             include_transcript=pdf_transcript,
             force=force,
             dry_run=dry_run,
+            allow_unlabeled=allow_unlabeled,
         )
         if ok:
             if "skip" in msg:
