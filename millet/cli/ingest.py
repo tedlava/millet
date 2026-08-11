@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 
 
-_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:YOU|REMOTE_\d+|SPEAKER_\d+)$")
+_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:REMOTE|SPEAKER)_\d+$")
 
 
 def _unlabeled_speakers(transcript_text: str) -> list[str]:
@@ -279,7 +279,7 @@ def ingest(
     n_fail = 0
     for sd in targets:
         click.echo(f"  • {sd}")
-ok, msg = _ingest_one_session(
+        ok, msg = _ingest_one_session(
             sd,
             summary_preset=summary_preset,
             summary_backend=summary_backend,
