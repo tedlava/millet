@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 
 
-_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:REMOTE|SPEAKER)_\d+$")
+_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:YOU|REMOTE_\d+|SPEAKER_\d+)$")
 
 
 def _unlabeled_speakers(transcript_text: str) -> list[str]:

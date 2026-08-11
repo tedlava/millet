@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 
 
-_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:REMOTE|SPEAKER)_\d+$")
+_PLACEHOLDER_SPEAKER_RE = re.compile(r"^(?:YOU|REMOTE_\d+|SPEAKER_\d+)$")
 
 
 def _remaining_placeholders(speakers, label_map: dict[str, str]) -> list[str]:
