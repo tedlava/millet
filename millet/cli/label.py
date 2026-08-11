@@ -644,11 +644,12 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
                 except Exception:
                     pass
 
-    if not label_map:
+    regenerate_summary = not no_summary
+
+    if not label_map and not regenerate_summary:
         click.echo("No labels changed. Nothing to do.")
         return
 
-    regenerate_summary = not no_summary
     if regenerate_summary and interactive:
         placeholders = _remaining_placeholders(speakers, label_map)
         if placeholders:
@@ -665,10 +666,18 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
                 )
                 regenerate_summary = False
 
-    click.echo("Applying labels:")
-    for old, new in sorted(label_map.items()):
-        click.echo(f"  {old} -> {new}")
-    click.echo()
+    if not label_map and not regenerate_summary:
+        click.echo("No labels changed. Nothing to do.")
+        return
+
+    if label_map:
+        click.echo("Applying labels:")
+        for old, new in sorted(label_map.items()):
+            click.echo(f"  {old} -> {new}")
+        click.echo()
+    else:
+        click.echo("No labels changed; regenerating summary only.")
+        click.echo()
 
     # Snapshot the pre-relabel segments (original speaker ids) BEFORE
     # apply_labels rewrites the transcript JSON with the confirmed names.
@@ -677,8 +686,6 @@ def label(session_dir, no_audio, no_summary, auto, summary_preset, summary_backe
     # match nothing.
     pre_relabel_segments = list(transcript.segments) if transcript is not None else None
 
-    # regenerate_summary was resolved above (possibly downgraded to False
-    # by the unlabeled-speaker prompt).
     result_files = apply_labels(
         session_path,
         label_map,
